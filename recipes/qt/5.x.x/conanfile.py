@@ -4,7 +4,7 @@ from conan.tools.android import android_abi
 from conan.tools.apple import is_apple_os
 from conan.tools.build import build_jobs, check_min_cppstd, cross_building
 from conan.tools.env import Environment, VirtualBuildEnv, VirtualRunEnv
-from conan.tools.files import chdir, copy, get, load, replace_in_file, rm, rmdir, save, export_conandata_patches, apply_conandata_patches
+from conan.tools.files import chdir, copy, get, load, replace_in_file, rm, rmdir, save, export_conandata_patches, apply_conandata_patches, unzip
 from conan.tools.gnu import PkgConfigDeps
 from conan.tools.microsoft import is_msvc, msvc_runtime_flag, is_msvc_static_runtime, VCVars
 from conan.tools.scm import Version
@@ -151,7 +151,7 @@ class QtConan(ConanFile):
             # In any case, check its actual version for compatibility
             from six import StringIO  # Python 2 and 3 compatible
             mybuf = StringIO()
-            cmd_v = f"\"{python_exe}\" --version"
+            cmd_v = f"\"{python_exe}\" --version 2>&1"
             self.run(cmd_v, mybuf)
             verstr = mybuf.getvalue().strip().split("Python ")[1]
             if verstr.endswith("+"):
@@ -371,7 +371,7 @@ class QtConan(ConanFile):
             else:
                 self.requires("libjpeg/9e")
         if self.options.get_safe("with_libpng", False) and not self.options.multiconfiguration:
-            self.requires("libpng/1.6.40")
+            self.requires("libpng/1.6.42")
         if self.options.with_sqlite3 and not self.options.multiconfiguration:
             self.requires("sqlite3/3.45.0")
         if self.options.get_safe("with_mysql", False):
@@ -448,9 +448,10 @@ class QtConan(ConanFile):
             self.tool_requires("wayland/<host_version>")
 
     def source(self):
-        get(self, **self.conan_data["sources"][self.version],
-            strip_root=True, destination="qt5")
-
+        # get(self, **self.conan_data["sources"][self.version],
+        #     strip_root=True, destination="qt5")
+        unzip(self, "qt-everywhere-opensource-src-5.15.11.tar.xz", destination="qt5", strip_root=True)
+        
         apply_conandata_patches(self)
         for f in ["renderer", os.path.join("renderer", "core"), os.path.join("renderer", "platform")]:
             replace_in_file(self, os.path.join(self.source_folder, "qt5", "qtwebengine", "src", "3rdparty", "chromium", "third_party", "blink", f, "BUILD.gn"),
