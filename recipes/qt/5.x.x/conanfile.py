@@ -447,10 +447,14 @@ class QtConan(ConanFile):
         if self.options.qtwayland:
             self.tool_requires("wayland/<host_version>")
 
+    def layout(self):
+        # Ninja does not properly support long paths, so we have to move the source dir up a bit
+        splitpath = os.path.splitdrive(os.getcwd())
+        self.folders.source = os.path.join(splitpath[0], "/work")
+
     def source(self):
-        # get(self, **self.conan_data["sources"][self.version],
-        #     strip_root=True, destination="qt5")
-        unzip(self, "qt-everywhere-opensource-src-5.15.11.tar.xz", destination="qt5", strip_root=True)
+        get(self, **self.conan_data["sources"][self.version],
+            strip_root=True, destination="qt5")
         
         apply_conandata_patches(self)
         for f in ["renderer", os.path.join("renderer", "core"), os.path.join("renderer", "platform")]:
