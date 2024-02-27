@@ -394,7 +394,7 @@ class QtConan(ConanFile):
         if self.options.with_zstd:
             self.requires("zstd/1.5.5")
         if self.options.qtwebengine and self.settings.os in ["Linux", "FreeBSD"]:
-            self.requires("expat/2.5.0")
+            self.requires("expat/2.6.0", override=True)
             self.requires("opus/1.4")
             if not self.options.qtwayland:
                 self.requires("xorg-proto/2022.2")
@@ -448,13 +448,15 @@ class QtConan(ConanFile):
             self.tool_requires("wayland/<host_version>")
 
     def layout(self):
-        # Ninja does not properly support long paths, so we have to move the source dir up a bit
-        splitpath = os.path.splitdrive(os.getcwd())
-        self.folders.source = os.path.join(splitpath[0], "/work")
+        # Ninja does not properly support long paths on windows, so we have to move the source dir up a bit
+        if os.name == "win32":
+            splitpath = os.path.splitdrive(os.getcwd())
+            self.folders.source = os.path.join(splitpath[0], "/work")
 
     def source(self):
-        get(self, **self.conan_data["sources"][self.version],
-            strip_root=True, destination="qt5")
+        # get(self, **self.conan_data["sources"][self.version],
+        #     strip_root=True, destination="qt5")
+        unzip(self, "/home/stew/repos/qt-everywhere-opensource-src-5.15.11.tar.xz", strip_root=True, destination="qt5")
         
         apply_conandata_patches(self)
         for f in ["renderer", os.path.join("renderer", "core"), os.path.join("renderer", "platform")]:
